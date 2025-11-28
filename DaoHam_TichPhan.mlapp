@@ -1,0 +1,585 @@
+classdef DOAN_DHTP < matlab.apps.AppBase
+
+    % Properties that correspond to app components
+    properties (Access = public)
+        UIFigure                matlab.ui.Figure
+        KtquthPanel             matlab.ui.container.Panel
+        UITable                 matlab.ui.control.Table
+        ResetButton             matlab.ui.control.Button
+        UIAxes                  matlab.ui.control.UIAxes
+        DliuuvoPanel            matlab.ui.container.Panel
+        TextArea                matlab.ui.control.TextArea
+        TabGroup                matlab.ui.container.TabGroup
+        DerTab                  matlab.ui.container.Tab
+        DerOrderDropDown        matlab.ui.control.DropDown
+        BcohmDropDown_2Label    matlab.ui.control.Label
+        DerMethodDropDown       matlab.ui.control.DropDown
+        PhngphpDropDown_2Label  matlab.ui.control.Label
+        DerModeDropDown         matlab.ui.control.Switch
+        ChSwitchLabel_2         matlab.ui.control.Label
+        DerHField               matlab.ui.control.EditField
+        BchEditField_2Label     matlab.ui.control.Label
+        DerBField               matlab.ui.control.EditField
+        CnbEditField_2Label     matlab.ui.control.Label
+        DerAField               matlab.ui.control.EditField
+        CnaEditField_2Label     matlab.ui.control.Label
+        DerYField               matlab.ui.control.EditField
+        yEditField_2Label       matlab.ui.control.Label
+        DerXField               matlab.ui.control.EditField
+        xEditField_2Label       matlab.ui.control.Label
+        DerFuncField            matlab.ui.control.EditField
+        HmfxEditField_2Label    matlab.ui.control.Label
+        DerCalcButton           matlab.ui.control.Button
+        IntTab                  matlab.ui.container.Tab
+        IntXField               matlab.ui.control.EditField
+        xEditFieldLabel         matlab.ui.control.Label
+        IntMethodDropDown       matlab.ui.control.DropDown
+        PhngphpDropDownLabel    matlab.ui.control.Label
+        IntModeDropDown         matlab.ui.control.Switch
+        ChSwitchLabel           matlab.ui.control.Label
+        IntNField               matlab.ui.control.Spinner
+        SonNLabel               matlab.ui.control.Label
+        IntCalcButton           matlab.ui.control.Button
+        IntBField               matlab.ui.control.EditField
+        CnbEditFieldLabel       matlab.ui.control.Label
+        IntAField               matlab.ui.control.EditField
+        CnaEditFieldLabel       matlab.ui.control.Label
+        IntYField               matlab.ui.control.EditField
+        yLabel                  matlab.ui.control.Label
+        IntFuncField            matlab.ui.control.EditField
+        HmfxEditFieldLabel      matlab.ui.control.Label
+    end
+
+    methods (Access = private)
+        function updateVisibility(app)
+            isFuncDer = strcmp(app.DerModeDropDown.Value, 'Function');
+            
+            derDataComponents = [
+                app.DerXField, app.DerYField, ...
+                app.xEditField_2Label, app.yEditField_2Label];
+            
+            derFuncComponents = [
+                app.DerFuncField, app.HmfxEditField_2Label, ...
+                app.DerAField, app.CnaEditField_2Label, ...
+                app.DerBField, app.CnbEditField_2Label, ...
+                app.DerHField, app.BchEditField_2Label];
+            
+             setVisible(app,derDataComponents, ~isFuncDer);
+            setVisible(app,derFuncComponents, isFuncDer);
+        
+            isFuncInt = strcmp(app.IntModeDropDown.Value, 'Function');
+        
+            intDataComponents = [app.IntXField, app.IntYField,app.xEditFieldLabel, app.yLabel];
+        
+            % Nhóm component cho FUNCTION
+            intFuncComponents = [
+                app.IntFuncField, app.HmfxEditFieldLabel, ...
+                app.IntAField, app.CnaEditFieldLabel, ...
+                app.IntBField, app.CnbEditFieldLabel, ...
+                app.IntNField, app.SonNLabel];
+        
+            setVisible(app,intDataComponents, ~isFuncInt);
+            setVisible(app,intFuncComponents, isFuncInt);
+        end
+    
+       function setVisible(~, components, flag)
+            for c = components
+                c.Visible = flag;
+            end
+       end
+
+        % BUTTON: RESET 
+        function resetAll(app)
+            cla(app.UIAxes); legend(app.UIAxes,'off');
+            app.TextArea.Value = "";
+            app.UITable.Data = [];
+            title(app.UIAxes,"Đồ thị kết quả");
+        
+            % Reset all edit fields
+            fields = [app.DerFuncField,app.DerXField,app.DerYField,...
+                      app.DerAField,app.DerBField,app.DerHField,...
+                      app.IntFuncField,app.IntXField,app.IntYField,...
+                      app.IntAField,app.IntBField];
+            for f = fields, f.Value = ""; end
+            app.IntNField.Value = 0;
+        
+            app.DerModeDropDown.Value = 'Data';
+            app.IntModeDropDown.Value = 'Data';
+            updateVisibility(app);
+        end
+
+        
+       function validateData(~,x, y)
+            if length(x) ~= length(y), error('Độ dài x và y không khớp.'); end
+            if any(diff(x) <= 0), error('Vector x phải tăng dần (sorted).'); end
+            if length(x) < 3, error('Cần ít nhất 3 điểm dữ liệu.'); end
+        end
+
+        function dy = calcFiniteDiff(~,x, y, method, order)
+            n = length(x);
+            h = x(2)-x(1); 
+            dy = zeros(size(y));
+
+            if order == 1
+                switch method
+                    case 'Forward'
+                        dy(1:end-1) = diff(y)./diff(x); dy(end) = dy(end-1);
+                    case 'Backward'
+                        dy(2:end) = diff(y)./diff(x); dy(1) = dy(2);
+                    case 'Central'
+                        dy(2:n-1) = (y(3:n)-y(1:n-2))./(x(3:n)-x(1:n-2));
+                        dy(1) = (y(2)-y(1))/h; dy(n) = (y(n)-y(n-1))/h;
+                end
+            elseif order == 2
+                % f''(x)
+                for i=2:n-1
+                    dy(i) = (y(i+1) - 2*y(i) + y(i-1)) / h^2;
+                end
+                dy(1)=dy(2); dy(n)=dy(n-1); 
+            end
+        end
+        function [x, y, dy] = processDerivative(app)
+            mode = app.DerModeDropDown.Value;
+            method = app.DerMethodDropDown.Value;
+            orderStr = app.DerOrderDropDown.Value; 
+        
+            % Lấy bậc
+            if contains(orderStr,'1'), order = 1;
+            else, order = 2; end
+        
+            % --- DATA MODE ---
+            if strcmp(mode,'Data')
+                x = str2num(app.DerXField.Value);
+                y = str2num(app.DerYField.Value);
+                validateData(app,x,y);
+        
+            % --- FUNCTION MODE ---
+            else
+                f = str2func(['@(x)' app.DerFuncField.Value]);
+                a = str2double(app.DerAField.Value);
+                b = str2double(app.DerBField.Value);
+                h = str2double(app.DerHField.Value);
+                if isnan(h)||h<=0, error('Bước h phải dương'); end
+                x = a:h:b;
+                y = f(x);
+            end
+        
+            % Tính đạo hàm
+            dy = calcFiniteDiff(app, x, y, method, order);
+        end
+
+        function [x, y, I, desc] = processIntegral(app)
+            mode = app.IntModeDropDown.Value;
+            method = app.IntMethodDropDown.Value;
+        
+            % --- DATA MODE ---
+            if strcmp(mode,'Data')
+                x = str2num(app.IntXField.Value);
+                y = str2num(app.IntYField.Value);
+                validateData(app,x,y);
+        
+            % --- FUNCTION MODE ---
+            else
+                f = str2func(['@(x)' app.IntFuncField.Value]);
+                a = str2double(app.IntAField.Value);
+                b = str2double(app.IntBField.Value);
+                n = app.IntNField.Value;
+        
+                x = linspace(a,b,n+1);
+                y = f(x);
+            end
+        
+            % --- Newton–Cotes ---
+            h = x(2)-x(1);
+        
+            switch method
+                case 'Trap'
+                    I = trapz(x,y);
+                    desc = "Hình thang";
+                case 'Simpson 1/3'
+                    if mod(length(x)-1,2)~=0, error('N phải chẵn'); end
+                    I = (h/3)*( y(1)+y(end) +4*sum(y(2:2:end-1)) +2*sum(y(3:2:end-2)) );
+                    desc = "Simpson 1/3";
+                case 'Simpson 3/8'
+                    if mod(length(x)-1,3)~=0, error('N phải chia hết cho 3'); end
+                    I = (3*h/8)*( y(1)+y(end) +3*sum(y(2:3:end-1)) +3*sum(y(3:3:end-1)) +2*sum(y(4:3:end-1)) );
+                    desc = "Simpson 3/8";
+            end
+        end
+    end
+    
+
+    % Callbacks that handle component events
+    methods (Access = private)
+
+        % Code that executes after component creation
+        function startupFcn(app)
+            app.IntMethodDropDown.Items = {'Trap', 'Simpson 1/3', 'Simpson 3/8'};
+            
+            app.DerModeDropDown.Value = 'Data';
+            app.IntModeDropDown.Value = 'Data';
+
+            updateVisibility(app);
+        end
+
+        % Button pushed function: DerCalcButton
+        function DerCalcButtonPushed(app, event)
+            try
+                [x, y, dy] = processDerivative(app);
+            
+                % Xuất kết quả
+                app.TextArea.Value = compose("x = %.4g | y' = %.4g", x(:), dy(:));
+                app.UITable.Data = table(x(:), y(:), dy(:),'VariableNames',{'x','y','dy/dx'});
+            
+                % Vẽ
+                cla(app.UIAxes);
+                hold(app.UIAxes,'on');
+                plot(app.UIAxes,x,y,'-b.','LineWidth',1);
+                plot(app.UIAxes,x,dy,'--r','LineWidth',1.5);
+                hold(app.UIAxes,'off');
+            
+                grid(app.UIAxes,'on');
+                legend(app.UIAxes,'Location','best');
+                title(app.UIAxes,"Đồ thị Hàm số và Đạo hàm");
+            catch ME
+                uialert(app.UIFigure, ME.message, 'Lỗi đạo hàm');
+            end
+        
+        end
+
+        % Value changed function: DerModeDropDown
+        function DerModeDropDownValueChanged2(app, event)
+             updateVisibility(app);       
+        end
+
+        % Value changed function: DerMethodDropDown
+        function DerMethodDropDownValueChanged(app, event)
+            DerCalcButtonPushed(app, event);
+        end
+
+        % Button pushed function: IntCalcButton
+        function IntCalcButtonPushed(app, event)
+            try
+                [x, y, dy] = processDerivative(app);
+            
+                % Xuất kết quả
+                app.TextArea.Value = compose("x = %.4g | y' = %.4g", x(:), dy(:));
+                app.UITable.Data = table(x(:), y(:), dy(:),'VariableNames',{'x','y','dy/dx'});
+            
+                % Vẽ
+                cla(app.UIAxes);
+                hold(app.UIAxes,'on');
+                plot(app.UIAxes,x,y,'-b.','LineWidth',1);
+                plot(app.UIAxes,x,dy,'--r','LineWidth',1.5);
+                hold(app.UIAxes,'off');
+            
+                grid(app.UIAxes,'on');
+                legend(app.UIAxes,'Location','best');
+                title(app.UIAxes,"Đồ thị Hàm số và Đạo hàm");
+            catch ME
+                uialert(app.UIFigure, ME.message, 'Lỗi đạo hàm');
+            end     
+        end
+
+        % Value changed function: IntModeDropDown
+        function IntModeDropDownValueChanged2(app, event)
+            updateVisibility(app);
+            
+        end
+
+        % Value changed function: IntMethodDropDown
+        function IntMethodDropDownValueChanged(app, event)
+            IntCalcButtonPushed(app, event); 
+        end
+
+        % Button pushed function: ResetButton
+        function ResetButtonPushed2(app, event)
+           resetAll(app);
+        end
+    end
+
+    % Component initialization
+    methods (Access = private)
+
+        % Create UIFigure and components
+        function createComponents(app)
+
+            % Create UIFigure and hide until all components are created
+            app.UIFigure = uifigure('Visible', 'off');
+            app.UIFigure.Position = [100 100 640 480];
+            app.UIFigure.Name = 'MATLAB App';
+
+            % Create DliuuvoPanel
+            app.DliuuvoPanel = uipanel(app.UIFigure);
+            app.DliuuvoPanel.Title = 'Dữ liệu đầu vào';
+            app.DliuuvoPanel.Position = [1 1 278 480];
+
+            % Create TabGroup
+            app.TabGroup = uitabgroup(app.DliuuvoPanel);
+            app.TabGroup.Position = [0 134 277 326];
+
+            % Create DerTab
+            app.DerTab = uitab(app.TabGroup);
+            app.DerTab.Title = 'Đạo Hàm';
+
+            % Create DerCalcButton
+            app.DerCalcButton = uibutton(app.DerTab, 'push');
+            app.DerCalcButton.ButtonPushedFcn = createCallbackFcn(app, @DerCalcButtonPushed, true);
+            app.DerCalcButton.Position = [63 10 159 27];
+            app.DerCalcButton.Text = 'TÍNH ĐẠO HÀM';
+
+            % Create HmfxEditField_2Label
+            app.HmfxEditField_2Label = uilabel(app.DerTab);
+            app.HmfxEditField_2Label.HorizontalAlignment = 'right';
+            app.HmfxEditField_2Label.Position = [12 219 54 22];
+            app.HmfxEditField_2Label.Text = 'Hàm f(x):';
+
+            % Create DerFuncField
+            app.DerFuncField = uieditfield(app.DerTab, 'text');
+            app.DerFuncField.Position = [71 219 189 22];
+
+            % Create xEditField_2Label
+            app.xEditField_2Label = uilabel(app.DerTab);
+            app.xEditField_2Label.HorizontalAlignment = 'right';
+            app.xEditField_2Label.Position = [12 219 25 22];
+            app.xEditField_2Label.Text = 'x:';
+
+            % Create DerXField
+            app.DerXField = uieditfield(app.DerTab, 'text');
+            app.DerXField.Position = [71 219 189 22];
+
+            % Create yEditField_2Label
+            app.yEditField_2Label = uilabel(app.DerTab);
+            app.yEditField_2Label.HorizontalAlignment = 'right';
+            app.yEditField_2Label.Position = [12 185 25 22];
+            app.yEditField_2Label.Text = 'y:';
+
+            % Create DerYField
+            app.DerYField = uieditfield(app.DerTab, 'text');
+            app.DerYField.Position = [71 185 189 22];
+
+            % Create CnaEditField_2Label
+            app.CnaEditField_2Label = uilabel(app.DerTab);
+            app.CnaEditField_2Label.HorizontalAlignment = 'right';
+            app.CnaEditField_2Label.Position = [12 185 40 22];
+            app.CnaEditField_2Label.Text = 'Cận a:';
+
+            % Create DerAField
+            app.DerAField = uieditfield(app.DerTab, 'text');
+            app.DerAField.Position = [71 185 189 22];
+
+            % Create CnbEditField_2Label
+            app.CnbEditField_2Label = uilabel(app.DerTab);
+            app.CnbEditField_2Label.HorizontalAlignment = 'right';
+            app.CnbEditField_2Label.Position = [12 150 40 22];
+            app.CnbEditField_2Label.Text = 'Cận b:';
+
+            % Create DerBField
+            app.DerBField = uieditfield(app.DerTab, 'text');
+            app.DerBField.Position = [71 150 189 22];
+
+            % Create BchEditField_2Label
+            app.BchEditField_2Label = uilabel(app.DerTab);
+            app.BchEditField_2Label.HorizontalAlignment = 'right';
+            app.BchEditField_2Label.Position = [12 114 48 22];
+            app.BchEditField_2Label.Text = 'Bước h:';
+
+            % Create DerHField
+            app.DerHField = uieditfield(app.DerTab, 'text');
+            app.DerHField.Position = [71 114 189 22];
+
+            % Create ChSwitchLabel_2
+            app.ChSwitchLabel_2 = uilabel(app.DerTab);
+            app.ChSwitchLabel_2.HorizontalAlignment = 'center';
+            app.ChSwitchLabel_2.Position = [110 280 44 22];
+            app.ChSwitchLabel_2.Text = 'Chế độ';
+
+            % Create DerModeDropDown
+            app.DerModeDropDown = uiswitch(app.DerTab, 'slider');
+            app.DerModeDropDown.Items = {'Data', 'Function'};
+            app.DerModeDropDown.ValueChangedFcn = createCallbackFcn(app, @DerModeDropDownValueChanged2, true);
+            app.DerModeDropDown.Position = [109 261 45 20];
+            app.DerModeDropDown.Value = 'Data';
+
+            % Create PhngphpDropDown_2Label
+            app.PhngphpDropDown_2Label = uilabel(app.DerTab);
+            app.PhngphpDropDown_2Label.HorizontalAlignment = 'right';
+            app.PhngphpDropDown_2Label.Position = [11 81 79 22];
+            app.PhngphpDropDown_2Label.Text = 'Phương pháp';
+
+            % Create DerMethodDropDown
+            app.DerMethodDropDown = uidropdown(app.DerTab);
+            app.DerMethodDropDown.Items = {'Forward', 'Backward', 'Central'};
+            app.DerMethodDropDown.ValueChangedFcn = createCallbackFcn(app, @DerMethodDropDownValueChanged, true);
+            app.DerMethodDropDown.Position = [105 81 159 22];
+            app.DerMethodDropDown.Value = 'Forward';
+
+            % Create BcohmDropDown_2Label
+            app.BcohmDropDown_2Label = uilabel(app.DerTab);
+            app.BcohmDropDown_2Label.HorizontalAlignment = 'right';
+            app.BcohmDropDown_2Label.Position = [6 46 79 22];
+            app.BcohmDropDown_2Label.Text = '  Bậc đạo hàm';
+
+            % Create DerOrderDropDown
+            app.DerOrderDropDown = uidropdown(app.DerTab);
+            app.DerOrderDropDown.Items = {'Bậc 1', 'Bậc 2'};
+            app.DerOrderDropDown.Position = [103 46 160 22];
+            app.DerOrderDropDown.Value = 'Bậc 1';
+
+            % Create IntTab
+            app.IntTab = uitab(app.TabGroup);
+            app.IntTab.Title = 'Tích Phân';
+
+            % Create HmfxEditFieldLabel
+            app.HmfxEditFieldLabel = uilabel(app.IntTab);
+            app.HmfxEditFieldLabel.HorizontalAlignment = 'right';
+            app.HmfxEditFieldLabel.Position = [9 219 54 22];
+            app.HmfxEditFieldLabel.Text = 'Hàm f(x):';
+
+            % Create IntFuncField
+            app.IntFuncField = uieditfield(app.IntTab, 'text');
+            app.IntFuncField.Position = [71 219 183 22];
+
+            % Create yLabel
+            app.yLabel = uilabel(app.IntTab);
+            app.yLabel.HorizontalAlignment = 'right';
+            app.yLabel.Position = [9 185 25 22];
+            app.yLabel.Text = 'y:';
+
+            % Create IntYField
+            app.IntYField = uieditfield(app.IntTab, 'text');
+            app.IntYField.Position = [71 185 183 22];
+
+            % Create CnaEditFieldLabel
+            app.CnaEditFieldLabel = uilabel(app.IntTab);
+            app.CnaEditFieldLabel.HorizontalAlignment = 'right';
+            app.CnaEditFieldLabel.Position = [9 185 40 22];
+            app.CnaEditFieldLabel.Text = 'Cận a:';
+
+            % Create IntAField
+            app.IntAField = uieditfield(app.IntTab, 'text');
+            app.IntAField.Position = [71 185 183 22];
+
+            % Create CnbEditFieldLabel
+            app.CnbEditFieldLabel = uilabel(app.IntTab);
+            app.CnbEditFieldLabel.HorizontalAlignment = 'right';
+            app.CnbEditFieldLabel.Position = [9 154 40 22];
+            app.CnbEditFieldLabel.Text = 'Cận b:';
+
+            % Create IntBField
+            app.IntBField = uieditfield(app.IntTab, 'text');
+            app.IntBField.Position = [71 154 183 22];
+
+            % Create IntCalcButton
+            app.IntCalcButton = uibutton(app.IntTab, 'push');
+            app.IntCalcButton.ButtonPushedFcn = createCallbackFcn(app, @IntCalcButtonPushed, true);
+            app.IntCalcButton.Position = [63 10 159 27];
+            app.IntCalcButton.Text = 'TÍNH TÍCH PHÂN';
+
+            % Create SonNLabel
+            app.SonNLabel = uilabel(app.IntTab);
+            app.SonNLabel.Position = [14 117 25 33];
+            app.SonNLabel.Text = 'N:';
+
+            % Create IntNField
+            app.IntNField = uispinner(app.IntTab);
+            app.IntNField.Position = [71 122 84 22];
+
+            % Create ChSwitchLabel
+            app.ChSwitchLabel = uilabel(app.IntTab);
+            app.ChSwitchLabel.HorizontalAlignment = 'center';
+            app.ChSwitchLabel.Position = [110 280 44 22];
+            app.ChSwitchLabel.Text = 'Chế độ';
+
+            % Create IntModeDropDown
+            app.IntModeDropDown = uiswitch(app.IntTab, 'slider');
+            app.IntModeDropDown.Items = {'Data', 'Function'};
+            app.IntModeDropDown.ValueChangedFcn = createCallbackFcn(app, @IntModeDropDownValueChanged2, true);
+            app.IntModeDropDown.Position = [109 261 45 20];
+            app.IntModeDropDown.Value = 'Data';
+
+            % Create PhngphpDropDownLabel
+            app.PhngphpDropDownLabel = uilabel(app.IntTab);
+            app.PhngphpDropDownLabel.HorizontalAlignment = 'right';
+            app.PhngphpDropDownLabel.Position = [9 81 79 22];
+            app.PhngphpDropDownLabel.Text = 'Phương pháp';
+
+            % Create IntMethodDropDown
+            app.IntMethodDropDown = uidropdown(app.IntTab);
+            app.IntMethodDropDown.Items = {'Trap', 'Simpson 1/3', 'Simpson 3/8'};
+            app.IntMethodDropDown.ValueChangedFcn = createCallbackFcn(app, @IntMethodDropDownValueChanged, true);
+            app.IntMethodDropDown.Position = [103 81 160 22];
+            app.IntMethodDropDown.Value = 'Trap';
+
+            % Create xEditFieldLabel
+            app.xEditFieldLabel = uilabel(app.IntTab);
+            app.xEditFieldLabel.HorizontalAlignment = 'right';
+            app.xEditFieldLabel.Position = [9 219 25 22];
+            app.xEditFieldLabel.Text = 'x:';
+
+            % Create IntXField
+            app.IntXField = uieditfield(app.IntTab, 'text');
+            app.IntXField.Position = [71 219 183 22];
+
+            % Create TextArea
+            app.TextArea = uitextarea(app.DliuuvoPanel);
+            app.TextArea.Position = [0 -1 278 137];
+
+            % Create KtquthPanel
+            app.KtquthPanel = uipanel(app.UIFigure);
+            app.KtquthPanel.Title = ' Kết quả & Đồ thị';
+            app.KtquthPanel.Position = [278 1 363 480];
+
+            % Create UIAxes
+            app.UIAxes = uiaxes(app.KtquthPanel);
+            title(app.UIAxes, 'Đồ Thị hàm số')
+            zlabel(app.UIAxes, 'Z')
+            app.UIAxes.XGrid = 'on';
+            app.UIAxes.YGrid = 'on';
+            app.UIAxes.Position = [1 175 346 281];
+
+            % Create ResetButton
+            app.ResetButton = uibutton(app.KtquthPanel, 'push');
+            app.ResetButton.ButtonPushedFcn = createCallbackFcn(app, @ResetButtonPushed2, true);
+            app.ResetButton.Position = [102 146 159 24];
+            app.ResetButton.Text = 'RESET';
+
+            % Create UITable
+            app.UITable = uitable(app.KtquthPanel);
+            app.UITable.ColumnName = '';
+            app.UITable.RowName = {};
+            app.UITable.Position = [0 -1 364 137];
+
+            % Show the figure after all components are created
+            app.UIFigure.Visible = 'on';
+        end
+    end
+
+    % App creation and deletion
+    methods (Access = public)
+
+        % Construct app
+        function app = DOAN_DHTP
+
+            % Create UIFigure and components
+            createComponents(app)
+
+            % Register the app with App Designer
+            registerApp(app, app.UIFigure)
+
+            % Execute the startup function
+            runStartupFcn(app, @startupFcn)
+
+            if nargout == 0
+                clear app
+            end
+        end
+
+        % Code that executes before app deletion
+        function delete(app)
+
+            % Delete UIFigure when app is deleted
+            delete(app.UIFigure)
+        end
+    end
+end
