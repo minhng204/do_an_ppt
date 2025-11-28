@@ -182,7 +182,7 @@ classdef DoanTHPPT < matlab.apps.AppBase
                      y_plot = arrayfun(g_plot_func, x_plot);
                      plot(app.UIAxes, x_plot, y_plot, 'b-', x_plot, x_plot, 'r--');
                      legend(app.UIAxes, 'g(x)', 'y = x');
-                     title(app.UIAxes, 'Đồ thị phương pháp Lặp');
+                     title(app.UIAxes, 'Đồ thị phương pháp lặp');
                 else
                      % Các phương pháp khác vẽ f(x) và trục hoành
                      f_plot_func = str2func(['@(x) ' strFun]);
