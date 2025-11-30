@@ -43,7 +43,7 @@ classdef noisuy < matlab.apps.AppBase
          
         function runCompute(app)
 
-            % --------- 1. Lấy dữ liệu ----------
+            % --------- 1. Lấy dữ liệu ---------------
             x = str2num(app.NhapdulieuxEditField.Value); %#ok<ST2NM>
             y = str2num(app.NhapdulieuyEditField.Value); %#ok<ST2NM>
             x0 = str2double(app.NhapgiatrinoisuyEditField.Value);
