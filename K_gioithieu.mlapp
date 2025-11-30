@@ -126,7 +126,7 @@ classdef DoanTHPPT < matlab.apps.AppBase
                     case 'Newton (tuyến tính)'
                         % Cần tính đạo hàm f'(x)
                         % Sử dụng Symbolic Math Toolbox để tính đạo hàm tự động
-                        syms x_sym;
+                        %syms x_sym;
                         f_sym = str2sym(strFun);
                         df_sym = diff(f_sym); % Tính đạo hàm
                         
@@ -182,7 +182,7 @@ classdef DoanTHPPT < matlab.apps.AppBase
                      y_plot = arrayfun(g_plot_func, x_plot);
                      plot(app.UIAxes, x_plot, y_plot, 'b-', x_plot, x_plot, 'r--');
                      legend(app.UIAxes, 'g(x)', 'y = x');
-                     title(app.UIAxes, 'Đồ thị phương pháp lặp');
+                     title(app.UIAxes, 'Đồ thị phương pháp Lặp');
                 else
                      % Các phương pháp khác vẽ f(x) và trục hoành
                      f_plot_func = str2func(['@(x) ' strFun]);
@@ -205,7 +205,7 @@ classdef DoanTHPPT < matlab.apps.AppBase
 
         % Value changed function: DanhschthnhvinListBox
         function DanhschthnhvinListBoxValueChanged(app, event)
-            value = app.DanhschthnhvinListBox.Value;
+            %value = app.DanhschthnhvinListBox.Value;
             % 1. Lấy tên người được chọn từ ListBox
             name = app.DanhschthnhvinListBox.Value;
         
