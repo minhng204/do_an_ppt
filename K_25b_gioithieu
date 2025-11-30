@@ -1,0 +1,507 @@
+classdef DoanTHPPT < matlab.apps.AppBase
+
+    % Properties that correspond to app components
+    properties (Access = public)
+        UIFigure                     matlab.ui.Figure
+        TabGroup                     matlab.ui.container.TabGroup
+        NghimTab                     matlab.ui.container.Tab
+        NTHCHNHPHNGPHPTNHLabel_2     matlab.ui.control.Label
+        Image3_2                     matlab.ui.control.Image
+        Image2_2                     matlab.ui.control.Image
+        SlnlpEditField               matlab.ui.control.NumericEditField
+        SlnlpEditFieldLabel          matlab.ui.control.Label
+        KtqunghimEditField           matlab.ui.control.NumericEditField
+        KtqunghimEditFieldLabel      matlab.ui.control.Label
+        ChnphngphptmDropDown         matlab.ui.control.DropDown
+        ChnphngphptmDropDownLabel    matlab.ui.control.Label
+        NhpsaischophpEditField       matlab.ui.control.NumericEditField
+        NhpsaischophpEditFieldLabel  matlab.ui.control.Label
+        Nhpkhongphnlynghimvd12hoc410EditField  matlab.ui.control.EditField
+        Nhpkhongphnlynghimvd12hoc410EditFieldLabel  matlab.ui.control.Label
+        NhpphngtrnhEditField         matlab.ui.control.EditField
+        NhpphngtrnhEditFieldLabel    matlab.ui.control.Label
+        ThchinButton                 matlab.ui.control.Button
+        UIAxes                       matlab.ui.control.UIAxes
+        GiithiunhmTab                matlab.ui.container.Tab
+        NTHCHNHPHNGPHPTNHLabel_3     matlab.ui.control.Label
+        Image3_3                     matlab.ui.control.Image
+        Image2_3                     matlab.ui.control.Image
+        ChititthnhvinPanel           matlab.ui.container.Panel
+        NhimvTextArea                matlab.ui.control.TextArea
+        NhimvTextAreaLabel           matlab.ui.control.Label
+        EmailEditField               matlab.ui.control.EditField
+        EmailEditFieldLabel          matlab.ui.control.Label
+        MSSVEditField                matlab.ui.control.EditField
+        MSSVEditFieldLabel           matlab.ui.control.Label
+        HvtnEditField                matlab.ui.control.EditField
+        HvtnEditFieldLabel           matlab.ui.control.Label
+        Image                        matlab.ui.control.Image
+        DanhschthnhvinListBox        matlab.ui.control.ListBox
+        DanhschthnhvinListBoxLabel   matlab.ui.control.Label
+    end
+
+    % Callbacks that handle component events
+    methods (Access = private)
+
+        % Button pushed function: ThchinButton
+        function ThchinButtonPushed(app, event)
+            % --- 1. LẤY DỮ LIỆU ĐẦU VÀO ---
+            strFun = app.NhpphngtrnhEditField.Value; % Lấy chuỗi phương trình
+            strRange = app.Nhpkhongphnlynghimvd12hoc410EditField.Value; % Lấy chuỗi khoảng
+            tol = app.NhpsaischophpEditField.Value; % Lấy sai số
+            method = app.ChnphngphptmDropDown.Value; % Lấy phương pháp
+
+            % Xử lý khoảng phân ly (chuyển text sang số)
+            range = str2num(strRange); %#ok<ST2NM> 
+            if length(range) ~= 2
+                uialert(app.UIFigure, 'Khoảng phân ly phải có 2 số (ví dụ: 1 2)', 'Lỗi nhập liệu');
+                return;
+            end
+            a = range(1);
+            b = range(2);
+            
+            % Khởi tạo biến kết quả
+            root = NaN;
+            iter = 0;
+            
+            % --- 2. XỬ LÝ TÍNH TOÁN THEO PHƯƠNG PHÁP ---
+            try
+                switch method
+                    case 'Chia đôi'
+                        % Tạo hàm f(x) từ chuỗi
+                        f = str2func(['@(x) ' strFun]);
+                        
+                        % Kiểm tra điều kiện đầu vào
+                        fa = f(a);
+                        fb = f(b);
+                        if fa * fb > 0
+                            uialert(app.UIFigure, 'Hàm số không đổi dấu trong khoảng này (f(a)*f(b) > 0).', 'Lỗi thuật toán');
+                            return;
+                        end
+                        
+                        % Thuật toán chia đôi
+                        while (b - a) > tol
+                            iter = iter + 1;
+                            c = (a + b) / 2;
+                            fc = f(c);
+                            if fc == 0 % Tìm thấy nghiệm chính xác
+                                a = c; b = c;
+                                break;
+                            end
+                            if fa * fc < 0
+                                b = c;
+                                % fb = fc; % Không cần thiết cho logic nhưng tối ưu
+                            else
+                                a = c;
+                                fa = fc;
+                            end
+                            if iter > 10000, break; end % Tránh vòng lặp vô hạn
+                        end
+                        root = (a + b) / 2;
+
+                    case 'Lặp'
+                        % Lưu ý: Với phương pháp lặp đơn, người dùng cần nhập g(x) 
+                        % sao cho x = g(x).
+                        % Ví dụ tìm nghiệm x^3 - x - 1 = 0.
+                        % Phương trình nhập vào nên là: (x+1)^(1/3)
+                        
+                        g = str2func(['@(x) ' strFun]);
+                        x0 = (a + b) / 2; % Chọn x0 ở giữa khoảng
+                        x_old = x0;
+                        err = inf;
+                        
+                        while err > tol
+                            iter = iter + 1;
+                            x_new = g(x_old);
+                            err = abs(x_new - x_old);
+                            x_old = x_new;
+                            
+                            if iter > 10000 
+                                uialert(app.UIFigure, 'Thuật toán không hội tụ sau 10000 lần lặp.', 'Cảnh báo');
+                                break; 
+                            end
+                        end
+                        root = x_old;
+
+                    case 'Newton (tuyến tính)'
+                        % Cần tính đạo hàm f'(x)
+                        % Sử dụng Symbolic Math Toolbox để tính đạo hàm tự động
+                        %syms x_sym;
+                        f_sym = str2sym(strFun);
+                        df_sym = diff(f_sym); % Tính đạo hàm
+                        
+                        % Chuyển về dạng function handle để tính toán số
+                        f = matlabFunction(f_sym);
+                        df = matlabFunction(df_sym);
+                        
+                        x0 = (a + b) / 2; % Chọn xấp xỉ đầu
+                        x_old = x0;
+                        err = inf;
+                        
+                        while err > tol
+                            iter = iter + 1;
+                            val_f = f(x_old);
+                            val_df = df(x_old);
+                            
+                            if val_df == 0
+                                uialert(app.UIFigure, 'Đạo hàm bằng 0, không thể chia.', 'Lỗi thuật toán');
+                                return;
+                            end
+                            
+                            x_new = x_old - val_f / val_df;
+                            err = abs(x_new - x_old);
+                            x_old = x_new;
+                            
+                            if iter > 10000, break; end
+                        end
+                        root = x_old;
+                end
+                
+                % --- 3. HIỂN THỊ KẾT QUẢ ---
+               % Kiểm tra nếu nghiệm là số phức hoặc vô cực (Inf/NaN)
+                if ~isreal(root) || ~isfinite(root)
+                    app.KtqunghimEditField.Value = 0; % Gán tạm về 0 hoặc giữ nguyên
+                    app.SlnlpEditField.Value = iter;
+                    uialert(app.UIFigure, ...
+                        'Kết quả phân kỳ (Vô cùng) hoặc là số phức. Vui lòng kiểm tra lại hàm g(x) đầu vào cho phương pháp Lặp.', ...
+                        'Kết quả không hợp lệ');
+                else
+                    % Nếu là số hợp lệ thì mới gán
+                    app.KtqunghimEditField.Value = root;
+                    app.SlnlpEditField.Value = iter;
+                end
+                
+                % --- 4. VẼ ĐỒ THỊ ---
+                % Tạo dữ liệu vẽ
+                x_plot = linspace(a - 1, b + 1, 100); % Mở rộng khoảng vẽ một chút
+                
+                % Xử lý hàm số để vẽ (Lưu ý phương pháp Lặp nhập g(x) nên cần xử lý khác chút nếu muốn vẽ f(x))
+                if strcmp(method, 'Lặp')
+                     % Nếu là Lặp, ta vẽ y = x và y = g(x) để thấy giao điểm
+                     g_plot_func = str2func(['@(x) ' strFun]);
+                     y_plot = arrayfun(g_plot_func, x_plot);
+                     plot(app.UIAxes, x_plot, y_plot, 'b-', x_plot, x_plot, 'r--');
+                     legend(app.UIAxes, 'g(x)', 'y = x');
+                     title(app.UIAxes, 'Đồ thị phương pháp Lặp');
+                else
+                     % Các phương pháp khác vẽ f(x) và trục hoành
+                     f_plot_func = str2func(['@(x) ' strFun]);
+                     % Dùng arrayfun để đảm bảo hoạt động tốt với vector
+                     y_plot = arrayfun(f_plot_func, x_plot); 
+                     
+                     plot(app.UIAxes, x_plot, y_plot, 'b-', [min(x_plot) max(x_plot)], [0 0], 'k--');
+                     hold(app.UIAxes, 'on');
+                     plot(app.UIAxes, root, 0, 'ro', 'MarkerSize', 8, 'MarkerFaceColor', 'r');
+                     hold(app.UIAxes, 'off');
+                     legend(app.UIAxes, 'f(x)', 'Trục hoành', 'Nghiệm');
+                     title(app.UIAxes, ['Đồ thị hàm số: ' strFun]);
+                end
+                grid(app.UIAxes, 'on');
+                
+            catch ME
+                uialert(app.UIFigure, ['Có lỗi xảy ra: ' ME.message], 'Lỗi');
+            end
+        end
+
+        % Value changed function: DanhschthnhvinListBox
+        function DanhschthnhvinListBoxValueChanged(app, event)
+            %value = app.DanhschthnhvinListBox.Value;
+            % 1. Lấy tên người được chọn từ ListBox
+            name = app.DanhschthnhvinListBox.Value;
+        
+            % 2. Khai báo biến lưu thông tin (Khởi tạo rỗng)
+            mssv = '';
+            email = '';
+            tasks = '';
+            imageFile = ''; 
+        
+            % 3. Kiểm tra tên và gán dữ liệu tương ứng
+            switch name
+                case 'Nguyễn Hồng Minh'
+                    mssv = '23207010';
+                    email = '23207010@student.hcmus.edu.vn';
+                    tasks = sprintf('+ abc\n+ xyz'); 
+                    imageFile = 'minh.jpg'; % Đảm bảo file ảnh có tên này
+        
+                case 'Nguyễn Minh Quân'
+                    mssv = '23207016';
+                    email = '23207016@student.hcmus.edu.vn';
+                    tasks = sprintf('- kqwd\n- hsac');
+                    imageFile = 'quan.jpg';
+        
+                case 'Nguyễn Hoàng Khang'
+                    mssv = '23207006';
+                    email = '23207006@student.hcmus.edu.vn';
+                    tasks = sprintf('- mns\n- qusz');
+                    imageFile = 'khang.jpg'; 
+            end
+        
+            % 4. Hiển thị thông tin lên giao diện
+            app.HvtnEditField.Value = name;       
+            app.MSSVEditField.Value = mssv;      
+            app.EmailEditField.Value = email;     
+            app.NhimvTextArea.Value = tasks;      
+        
+            % 5. Hiển thị hình ảnh (Kiểm tra file tồn tại để tránh lỗi)
+            if exist(imageFile, 'file')
+                app.Image.ImageSource = imageFile;
+            else
+                app.Image.ImageSource = ''; % Xóa ảnh nếu không tìm thấy file
+            end
+        end
+    end
+
+    % Component initialization
+    methods (Access = private)
+
+        % Create UIFigure and components
+        function createComponents(app)
+
+            % Create UIFigure and hide until all components are created
+            app.UIFigure = uifigure('Visible', 'off');
+            app.UIFigure.Position = [100 100 761 493];
+            app.UIFigure.Name = 'MATLAB App';
+
+            % Create TabGroup
+            app.TabGroup = uitabgroup(app.UIFigure);
+            app.TabGroup.Position = [1 1 761 493];
+
+            % Create NghimTab
+            app.NghimTab = uitab(app.TabGroup);
+            app.NghimTab.Title = 'Nghiệm';
+
+            % Create UIAxes
+            app.UIAxes = uiaxes(app.NghimTab);
+            title(app.UIAxes, 'Title')
+            xlabel(app.UIAxes, 'X')
+            ylabel(app.UIAxes, 'Y')
+            zlabel(app.UIAxes, 'Z')
+            app.UIAxes.Position = [374 103 346 237];
+
+            % Create ThchinButton
+            app.ThchinButton = uibutton(app.NghimTab, 'push');
+            app.ThchinButton.ButtonPushedFcn = createCallbackFcn(app, @ThchinButtonPushed, true);
+            app.ThchinButton.FontSize = 14;
+            app.ThchinButton.Position = [574 39 100 25];
+            app.ThchinButton.Text = 'Thực hiện';
+
+            % Create NhpphngtrnhEditFieldLabel
+            app.NhpphngtrnhEditFieldLabel = uilabel(app.NghimTab);
+            app.NhpphngtrnhEditFieldLabel.HorizontalAlignment = 'right';
+            app.NhpphngtrnhEditFieldLabel.FontSize = 14;
+            app.NhpphngtrnhEditFieldLabel.Position = [70 292 124 22];
+            app.NhpphngtrnhEditFieldLabel.Text = 'Nhập phương trình';
+
+            % Create NhpphngtrnhEditField
+            app.NhpphngtrnhEditField = uieditfield(app.NghimTab, 'text');
+            app.NhpphngtrnhEditField.FontSize = 14;
+            app.NhpphngtrnhEditField.Position = [209 292 100 22];
+            app.NhpphngtrnhEditField.Value = 'x^3-x-1';
+
+            % Create Nhpkhongphnlynghimvd12hoc410EditFieldLabel
+            app.Nhpkhongphnlynghimvd12hoc410EditFieldLabel = uilabel(app.NghimTab);
+            app.Nhpkhongphnlynghimvd12hoc410EditFieldLabel.HorizontalAlignment = 'right';
+            app.Nhpkhongphnlynghimvd12hoc410EditFieldLabel.FontSize = 14;
+            app.Nhpkhongphnlynghimvd12hoc410EditFieldLabel.Position = [42 206 152 52];
+            app.Nhpkhongphnlynghimvd12hoc410EditFieldLabel.Text = {'Nhập khoảng phân '; 'ly nghiệm'; 'ví dụ : "1 2" hoặc "4 10"'};
+
+            % Create Nhpkhongphnlynghimvd12hoc410EditField
+            app.Nhpkhongphnlynghimvd12hoc410EditField = uieditfield(app.NghimTab, 'text');
+            app.Nhpkhongphnlynghimvd12hoc410EditField.FontSize = 14;
+            app.Nhpkhongphnlynghimvd12hoc410EditField.Position = [209 236 100 22];
+            app.Nhpkhongphnlynghimvd12hoc410EditField.Value = '1 2';
+
+            % Create NhpsaischophpEditFieldLabel
+            app.NhpsaischophpEditFieldLabel = uilabel(app.NghimTab);
+            app.NhpsaischophpEditFieldLabel.HorizontalAlignment = 'right';
+            app.NhpsaischophpEditFieldLabel.FontSize = 14;
+            app.NhpsaischophpEditFieldLabel.Position = [54 154 140 22];
+            app.NhpsaischophpEditFieldLabel.Text = 'Nhập sai số cho phép';
+
+            % Create NhpsaischophpEditField
+            app.NhpsaischophpEditField = uieditfield(app.NghimTab, 'numeric');
+            app.NhpsaischophpEditField.FontSize = 14;
+            app.NhpsaischophpEditField.Position = [209 154 100 22];
+            app.NhpsaischophpEditField.Value = 0.001;
+
+            % Create ChnphngphptmDropDownLabel
+            app.ChnphngphptmDropDownLabel = uilabel(app.NghimTab);
+            app.ChnphngphptmDropDownLabel.HorizontalAlignment = 'right';
+            app.ChnphngphptmDropDownLabel.FontSize = 14;
+            app.ChnphngphptmDropDownLabel.Position = [44 103 150 22];
+            app.ChnphngphptmDropDownLabel.Text = 'Chọn phương pháp tìm';
+
+            % Create ChnphngphptmDropDown
+            app.ChnphngphptmDropDown = uidropdown(app.NghimTab);
+            app.ChnphngphptmDropDown.Items = {'Chia đôi', 'Lặp', 'Newton (tuyến tính)'};
+            app.ChnphngphptmDropDown.FontSize = 14;
+            app.ChnphngphptmDropDown.Position = [209 103 100 22];
+            app.ChnphngphptmDropDown.Value = 'Chia đôi';
+
+            % Create KtqunghimEditFieldLabel
+            app.KtqunghimEditFieldLabel = uilabel(app.NghimTab);
+            app.KtqunghimEditFieldLabel.HorizontalAlignment = 'right';
+            app.KtqunghimEditFieldLabel.FontSize = 14;
+            app.KtqunghimEditFieldLabel.Position = [91 40 103 22];
+            app.KtqunghimEditFieldLabel.Text = 'Kết quả nghiệm';
+
+            % Create KtqunghimEditField
+            app.KtqunghimEditField = uieditfield(app.NghimTab, 'numeric');
+            app.KtqunghimEditField.FontSize = 14;
+            app.KtqunghimEditField.Position = [209 40 100 22];
+
+            % Create SlnlpEditFieldLabel
+            app.SlnlpEditFieldLabel = uilabel(app.NghimTab);
+            app.SlnlpEditFieldLabel.HorizontalAlignment = 'right';
+            app.SlnlpEditFieldLabel.FontSize = 14;
+            app.SlnlpEditFieldLabel.Position = [352 40 67 22];
+            app.SlnlpEditFieldLabel.Text = 'Số lần lặp';
+
+            % Create SlnlpEditField
+            app.SlnlpEditField = uieditfield(app.NghimTab, 'numeric');
+            app.SlnlpEditField.FontSize = 14;
+            app.SlnlpEditField.Position = [434 40 100 22];
+
+            % Create Image2_2
+            app.Image2_2 = uiimage(app.NghimTab);
+            app.Image2_2.Position = [574 375 166 53];
+            app.Image2_2.ImageSource = 'logo-fetel.png';
+
+            % Create Image3_2
+            app.Image3_2 = uiimage(app.NghimTab);
+            app.Image3_2.Position = [30 357 100 100];
+            app.Image3_2.ImageSource = 'logoKHTN.png';
+
+            % Create NTHCHNHPHNGPHPTNHLabel_2
+            app.NTHCHNHPHNGPHPTNHLabel_2 = uilabel(app.NghimTab);
+            app.NTHCHNHPHNGPHPTNHLabel_2.FontName = 'Times New Roman';
+            app.NTHCHNHPHNGPHPTNHLabel_2.FontSize = 18;
+            app.NTHCHNHPHNGPHPTNHLabel_2.FontWeight = 'bold';
+            app.NTHCHNHPHNGPHPTNHLabel_2.Position = [182 389 372 24];
+            app.NTHCHNHPHNGPHPTNHLabel_2.Text = 'ĐỒ ÁN THỰC HÀNH PHƯƠNG PHÁP TÍNH';
+
+            % Create GiithiunhmTab
+            app.GiithiunhmTab = uitab(app.TabGroup);
+            app.GiithiunhmTab.Title = 'Giới thiệu nhóm';
+
+            % Create DanhschthnhvinListBoxLabel
+            app.DanhschthnhvinListBoxLabel = uilabel(app.GiithiunhmTab);
+            app.DanhschthnhvinListBoxLabel.HorizontalAlignment = 'center';
+            app.DanhschthnhvinListBoxLabel.FontSize = 15;
+            app.DanhschthnhvinListBoxLabel.Position = [49 253 150 22];
+            app.DanhschthnhvinListBoxLabel.Text = 'Danh sách thành viên';
+
+            % Create DanhschthnhvinListBox
+            app.DanhschthnhvinListBox = uilistbox(app.GiithiunhmTab);
+            app.DanhschthnhvinListBox.Items = {'Nguyễn Hồng Minh', 'Nguyễn Minh Quân', 'Nguyễn Hoàng Khang'};
+            app.DanhschthnhvinListBox.ValueChangedFcn = createCallbackFcn(app, @DanhschthnhvinListBoxValueChanged, true);
+            app.DanhschthnhvinListBox.FontSize = 15;
+            app.DanhschthnhvinListBox.Position = [26 161 195 84];
+            app.DanhschthnhvinListBox.Value = 'Nguyễn Hồng Minh';
+
+            % Create ChititthnhvinPanel
+            app.ChititthnhvinPanel = uipanel(app.GiithiunhmTab);
+            app.ChititthnhvinPanel.Title = 'Chi tiết thành viên';
+            app.ChititthnhvinPanel.FontSize = 14;
+            app.ChititthnhvinPanel.Position = [258 89 482 225];
+
+            % Create Image
+            app.Image = uiimage(app.ChititthnhvinPanel);
+            app.Image.Position = [334 38 130 135];
+
+            % Create HvtnEditFieldLabel
+            app.HvtnEditFieldLabel = uilabel(app.ChititthnhvinPanel);
+            app.HvtnEditFieldLabel.HorizontalAlignment = 'right';
+            app.HvtnEditFieldLabel.FontSize = 14;
+            app.HvtnEditFieldLabel.Position = [2 162 65 22];
+            app.HvtnEditFieldLabel.Text = 'Họ và tên';
+
+            % Create HvtnEditField
+            app.HvtnEditField = uieditfield(app.ChititthnhvinPanel, 'text');
+            app.HvtnEditField.FontSize = 14;
+            app.HvtnEditField.Position = [82 162 235 22];
+
+            % Create MSSVEditFieldLabel
+            app.MSSVEditFieldLabel = uilabel(app.ChititthnhvinPanel);
+            app.MSSVEditFieldLabel.HorizontalAlignment = 'right';
+            app.MSSVEditFieldLabel.FontSize = 14;
+            app.MSSVEditFieldLabel.Position = [22 128 45 22];
+            app.MSSVEditFieldLabel.Text = 'MSSV';
+
+            % Create MSSVEditField
+            app.MSSVEditField = uieditfield(app.ChititthnhvinPanel, 'text');
+            app.MSSVEditField.FontSize = 14;
+            app.MSSVEditField.Position = [82 128 235 22];
+
+            % Create EmailEditFieldLabel
+            app.EmailEditFieldLabel = uilabel(app.ChititthnhvinPanel);
+            app.EmailEditFieldLabel.HorizontalAlignment = 'right';
+            app.EmailEditFieldLabel.FontSize = 14;
+            app.EmailEditFieldLabel.Position = [27 93 40 22];
+            app.EmailEditFieldLabel.Text = 'Email';
+
+            % Create EmailEditField
+            app.EmailEditField = uieditfield(app.ChititthnhvinPanel, 'text');
+            app.EmailEditField.FontSize = 14;
+            app.EmailEditField.Position = [82 93 235 22];
+
+            % Create NhimvTextAreaLabel
+            app.NhimvTextAreaLabel = uilabel(app.ChititthnhvinPanel);
+            app.NhimvTextAreaLabel.HorizontalAlignment = 'right';
+            app.NhimvTextAreaLabel.FontSize = 14;
+            app.NhimvTextAreaLabel.Position = [13 49 64 22];
+            app.NhimvTextAreaLabel.Text = 'Nhiệm vụ';
+
+            % Create NhimvTextArea
+            app.NhimvTextArea = uitextarea(app.ChititthnhvinPanel);
+            app.NhimvTextArea.FontSize = 14;
+            app.NhimvTextArea.Position = [82 13 235 60];
+
+            % Create Image2_3
+            app.Image2_3 = uiimage(app.GiithiunhmTab);
+            app.Image2_3.Position = [574 375 166 53];
+            app.Image2_3.ImageSource = 'logo-fetel.png';
+
+            % Create Image3_3
+            app.Image3_3 = uiimage(app.GiithiunhmTab);
+            app.Image3_3.Position = [30 357 100 100];
+            app.Image3_3.ImageSource = 'logoKHTN.png';
+
+            % Create NTHCHNHPHNGPHPTNHLabel_3
+            app.NTHCHNHPHNGPHPTNHLabel_3 = uilabel(app.GiithiunhmTab);
+            app.NTHCHNHPHNGPHPTNHLabel_3.FontName = 'Times New Roman';
+            app.NTHCHNHPHNGPHPTNHLabel_3.FontSize = 18;
+            app.NTHCHNHPHNGPHPTNHLabel_3.FontWeight = 'bold';
+            app.NTHCHNHPHNGPHPTNHLabel_3.Position = [182 389 372 24];
+            app.NTHCHNHPHNGPHPTNHLabel_3.Text = 'ĐỒ ÁN THỰC HÀNH PHƯƠNG PHÁP TÍNH';
+
+            % Show the figure after all components are created
+            app.UIFigure.Visible = 'on';
+        end
+    end
+
+    % App creation and deletion
+    methods (Access = public)
+
+        % Construct app
+        function app = DoanTHPPT
+
+            % Create UIFigure and components
+            createComponents(app)
+
+            % Register the app with App Designer
+            registerApp(app, app.UIFigure)
+
+            if nargout == 0
+                clear app
+            end
+        end
+
+        % Code that executes before app deletion
+        function delete(app)
+
+            % Delete UIFigure when app is deleted
+            delete(app.UIFigure)
+        end
+    end
+end
