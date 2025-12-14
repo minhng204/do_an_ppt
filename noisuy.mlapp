@@ -2,6 +2,7 @@ classdef noisuy < matlab.apps.AppBase
 
     % Properties that correspond to app components
     properties (Access = public)
+<<<<<<< Updated upstream
         UIFigure                        matlab.ui.Figure
         TabGroup                        matlab.ui.container.TabGroup
         NisuyTab                        matlab.ui.container.Tab
@@ -265,11 +266,34 @@ classdef noisuy < matlab.apps.AppBase
         %----------------------- LAGRANGE -----------------------%
 
     end
+=======
+        UIFigure                      matlab.ui.Figure
+        TabGroup                      matlab.ui.container.TabGroup
+        NisuyTab                      matlab.ui.container.Tab
+        KetquanoisuyTextArea          matlab.ui.control.TextArea
+        KtqunisuyTextAreaLabel        matlab.ui.control.Label
+        NhapgiatrinoisuyEditField     matlab.ui.control.EditField
+        NhpgitrnisuyEditFieldLabel    matlab.ui.control.Label
+        KetquadathucnoisuyTextArea    matlab.ui.control.TextArea
+        KtquathcnisuyTextAreaLabel    matlab.ui.control.Label
+        ChonphuongphapnoisuyDropDown  matlab.ui.control.DropDown
+        ChnphngphpnisuyDropDownLabel  matlab.ui.control.Label
+        NhpdliuyEditFieldLabel        matlab.ui.control.Label
+        NhpdliuxEditFieldLabel        matlab.ui.control.Label
+        NhapdulieuyEditField          matlab.ui.control.EditField
+        NhapdulieuxEditField          matlab.ui.control.EditField
+        UIAxes                        matlab.ui.control.UIAxes
+        Tab2                          matlab.ui.container.Tab
+    end
+
+   
+>>>>>>> Stashed changes
 
 
     % Callbacks that handle component events
     methods (Access = private)
 
+<<<<<<< Updated upstream
         % Button pushed function: TNHButton
         function TNHButtonPushed(app, event)
             runCompute(app);
@@ -284,6 +308,55 @@ classdef noisuy < matlab.apps.AppBase
         % Button pushed function: TNHButton_2
         function TNHButton_2Pushed(app, event)
             runRegression(app);
+=======
+        % Value changed function: ChonphuongphapnoisuyDropDown
+        function ChonphuongphapnoisuyDropDownValueChanged(app, event)
+                     % Lấy dữ liệu x, y
+            x = str2num(app.NhapdulieuxEditField.Value);
+            y = str2num(app.NhapdulieuyEditField.Value);
+            
+            % Lấy giá trị cần nội suy
+            x0 = str2double(app.NhapgiatrinoisuyEditField.Value);
+        
+            if isempty(x) || isempty(y) || length(x)~=length(y)
+                app.KetquadathucnoisuyTextArea.Value = "Lỗi dữ liệu!";
+                app.KetquanoisuyTextArea.Value = " ";
+                return;
+            end
+            
+            method = app.ChonphuongphapnoisuyDropDown.Value;
+        
+            % -----------------------------
+            %       Nội suy Newton
+            % -----------------------------
+            if strcmp(method,"Nội suy Newton")
+                y_inter = NewtonInterpolation(x, y, x0);
+                polyStr = NewTonPolynomialString(x, y);
+            end
+        
+            % -----------------------------
+            %       Nội suy Lagrange
+            % -----------------------------
+            if strcmp(method,"Nội suy Lagrange")
+                y_inter = Lagrange(x, y, x0);
+                polyStr = LagrangePolynomialString(x, y);
+            end
+            
+            % Kết quả đưa vào TextArea
+            app.KetquanoisuyTextArea.Value = string(y_inter);
+            app.KetquadathucnoisuyTextArea.Value = polyStr;
+        
+            % Vẽ đồ thị
+            xx = linspace(min(x),max(x),200);
+            yy = arrayfun(@(t) ...
+                strcmp(method,"Nội suy Newton") * NewtonInterpolation(x,y,t) + ...
+                strcmp(method,"Nội suy Lagrange") * Lagrange(x,y,t), xx);
+        
+            plot(app.UIAxes, xx, yy, 'LineWidth', 2);
+            hold(app.UIAxes,'on');
+            scatter(app.UIAxes, x, y,'filled');
+            hold(app.UIAxes,'off');
+>>>>>>> Stashed changes
         end
     end
 
@@ -295,16 +368,28 @@ classdef noisuy < matlab.apps.AppBase
 
             % Create UIFigure and hide until all components are created
             app.UIFigure = uifigure('Visible', 'off');
+<<<<<<< Updated upstream
             app.UIFigure.Position = [100 100 808 567];
+=======
+            app.UIFigure.Position = [100 100 640 480];
+>>>>>>> Stashed changes
             app.UIFigure.Name = 'MATLAB App';
 
             % Create TabGroup
             app.TabGroup = uitabgroup(app.UIFigure);
+<<<<<<< Updated upstream
             app.TabGroup.Position = [1 1 808 567];
 
             % Create NisuyTab
             app.NisuyTab = uitab(app.TabGroup);
             app.NisuyTab.Title = 'Nội suy';
+=======
+            app.TabGroup.Position = [1 1 640 480];
+
+            % Create NisuyTab
+            app.NisuyTab = uitab(app.TabGroup);
+            app.NisuyTab.Title = 'Nôi suy';
+>>>>>>> Stashed changes
 
             % Create UIAxes
             app.UIAxes = uiaxes(app.NisuyTab);
@@ -312,6 +397,7 @@ classdef noisuy < matlab.apps.AppBase
             xlabel(app.UIAxes, 'X')
             ylabel(app.UIAxes, 'Y')
             zlabel(app.UIAxes, 'Z')
+<<<<<<< Updated upstream
             app.UIAxes.Position = [406 290 353 243];
 
             % Create NhapdulieuxEditField
@@ -323,62 +409,110 @@ classdef noisuy < matlab.apps.AppBase
             app.NhapdulieuyEditField = uieditfield(app.NisuyTab, 'text');
             app.NhapdulieuyEditField.HorizontalAlignment = 'center';
             app.NhapdulieuyEditField.Position = [176 400 211 45];
+=======
+            app.UIAxes.Position = [298 203 321 218];
+
+            % Create NhapdulieuxEditField
+            app.NhapdulieuxEditField = uieditfield(app.NisuyTab, 'text');
+            app.NhapdulieuxEditField.Position = [113 366 128 45];
+
+            % Create NhapdulieuyEditField
+            app.NhapdulieuyEditField = uieditfield(app.NisuyTab, 'text');
+            app.NhapdulieuyEditField.Position = [113 303 128 45];
+>>>>>>> Stashed changes
 
             % Create NhpdliuxEditFieldLabel
             app.NhpdliuxEditFieldLabel = uilabel(app.NisuyTab);
             app.NhpdliuxEditFieldLabel.HorizontalAlignment = 'right';
+<<<<<<< Updated upstream
             app.NhpdliuxEditFieldLabel.Position = [75 475 89 22];
+=======
+            app.NhpdliuxEditFieldLabel.Position = [12 378 86 22];
+>>>>>>> Stashed changes
             app.NhpdliuxEditFieldLabel.Text = 'Nhập dữ liệu x:';
 
             % Create NhpdliuyEditFieldLabel
             app.NhpdliuyEditFieldLabel = uilabel(app.NisuyTab);
             app.NhpdliuyEditFieldLabel.HorizontalAlignment = 'right';
+<<<<<<< Updated upstream
             app.NhpdliuyEditFieldLabel.Position = [75 411 89 22];
+=======
+            app.NhpdliuyEditFieldLabel.Position = [12 314 86 22];
+>>>>>>> Stashed changes
             app.NhpdliuyEditFieldLabel.Text = 'Nhập dữ liệu y:';
 
             % Create ChnphngphpnisuyDropDownLabel
             app.ChnphngphpnisuyDropDownLabel = uilabel(app.NisuyTab);
             app.ChnphngphpnisuyDropDownLabel.HorizontalAlignment = 'right';
+<<<<<<< Updated upstream
             app.ChnphngphpnisuyDropDownLabel.Position = [75 355 154 22];
+=======
+            app.ChnphngphpnisuyDropDownLabel.Position = [43 268 154 22];
+>>>>>>> Stashed changes
             app.ChnphngphpnisuyDropDownLabel.Text = 'Chọn phương pháp nội suy:';
 
             % Create ChonphuongphapnoisuyDropDown
             app.ChonphuongphapnoisuyDropDown = uidropdown(app.NisuyTab);
             app.ChonphuongphapnoisuyDropDown.Items = {'Nội suy Newton', 'Nội suy Lagrange'};
             app.ChonphuongphapnoisuyDropDown.ValueChangedFcn = createCallbackFcn(app, @ChonphuongphapnoisuyDropDownValueChanged, true);
+<<<<<<< Updated upstream
             app.ChonphuongphapnoisuyDropDown.Position = [75 290 196 52];
+=======
+            app.ChonphuongphapnoisuyDropDown.Position = [43 203 196 52];
+>>>>>>> Stashed changes
             app.ChonphuongphapnoisuyDropDown.Value = 'Nội suy Newton';
 
             % Create KtquathcnisuyTextAreaLabel
             app.KtquathcnisuyTextAreaLabel = uilabel(app.NisuyTab);
             app.KtquathcnisuyTextAreaLabel.HorizontalAlignment = 'right';
+<<<<<<< Updated upstream
             app.KtquathcnisuyTextAreaLabel.Position = [75 211 132 22];
+=======
+            app.KtquathcnisuyTextAreaLabel.Position = [43 154 132 22];
+>>>>>>> Stashed changes
             app.KtquathcnisuyTextAreaLabel.Text = 'Kết quả đa thức nội suy';
 
             % Create KetquadathucnoisuyTextArea
             app.KetquadathucnoisuyTextArea = uitextarea(app.NisuyTab);
+<<<<<<< Updated upstream
             app.KetquadathucnoisuyTextArea.HorizontalAlignment = 'center';
             app.KetquadathucnoisuyTextArea.Position = [220 179 539 86];
+=======
+            app.KetquadathucnoisuyTextArea.Position = [190 124 233 54];
+>>>>>>> Stashed changes
 
             % Create NhpgitrnisuyEditFieldLabel
             app.NhpgitrnisuyEditFieldLabel = uilabel(app.NisuyTab);
             app.NhpgitrnisuyEditFieldLabel.HorizontalAlignment = 'right';
+<<<<<<< Updated upstream
             app.NhpgitrnisuyEditFieldLabel.Position = [75 105 108 22];
+=======
+            app.NhpgitrnisuyEditFieldLabel.Position = [43 79 108 22];
+>>>>>>> Stashed changes
             app.NhpgitrnisuyEditFieldLabel.Text = 'Nhập giá trị nội suy';
 
             % Create NhapgiatrinoisuyEditField
             app.NhapgiatrinoisuyEditField = uieditfield(app.NisuyTab, 'text');
+<<<<<<< Updated upstream
             app.NhapgiatrinoisuyEditField.HorizontalAlignment = 'right';
             app.NhapgiatrinoisuyEditField.Position = [220 86 167 59];
+=======
+            app.NhapgiatrinoisuyEditField.Position = [166 60 100 59];
+>>>>>>> Stashed changes
 
             % Create KtqunisuyTextAreaLabel
             app.KtqunisuyTextAreaLabel = uilabel(app.NisuyTab);
             app.KtqunisuyTextAreaLabel.HorizontalAlignment = 'right';
+<<<<<<< Updated upstream
             app.KtqunisuyTextAreaLabel.Position = [489 102 88 22];
+=======
+            app.KtqunisuyTextAreaLabel.Position = [334 77 88 22];
+>>>>>>> Stashed changes
             app.KtqunisuyTextAreaLabel.Text = 'Kết quả nội suy';
 
             % Create KetquanoisuyTextArea
             app.KetquanoisuyTextArea = uitextarea(app.NisuyTab);
+<<<<<<< Updated upstream
             app.KetquanoisuyTextArea.HorizontalAlignment = 'center';
             app.KetquanoisuyTextArea.Position = [592 81 167 63];
 
@@ -472,6 +606,13 @@ classdef noisuy < matlab.apps.AppBase
             app.KetquanoisuyTextArea_2 = uitextarea(app.HiQuyTab);
             app.KetquanoisuyTextArea_2.HorizontalAlignment = 'center';
             app.KetquanoisuyTextArea_2.Position = [592 81 167 63];
+=======
+            app.KetquanoisuyTextArea.Position = [437 56 167 63];
+
+            % Create Tab2
+            app.Tab2 = uitab(app.TabGroup);
+            app.Tab2.Title = 'Tab2';
+>>>>>>> Stashed changes
 
             % Show the figure after all components are created
             app.UIFigure.Visible = 'on';
