@@ -563,6 +563,11 @@ classdef DoanTHPPT_final < matlab.apps.AppBase
             app.UITable.ColumnName = {'x','y','dy/dx'};
             app.UITable_2.ColumnName = {'x','y','dy/dx'};
             updateVisibility(app);
+            app.Image2_3.ImageSource = fullfile(pwd,'image3_3.jpg');
+
+            app.Image3_3.ImageSource = fullfile(pwd,'image2_3.jpg');
+
+
         end
 
         % Value changed function: DanhschthnhvinListBox
@@ -582,19 +587,19 @@ classdef DoanTHPPT_final < matlab.apps.AppBase
                 case 'Nguyễn Hồng Minh'
                     mssv = '23207010';
                     email = '23207010@student.hcmus.edu.vn';
-                    tasks = sprintf('+ abc\n+ xyz'); 
-                    imageFile = 'minh.jpg'; % Đảm bảo file ảnh có tên này
+                    tasks = sprintf('- Nội suy\n- Hồi quy'); 
+                    imageFile = 'minh.jpg'; 
         
                 case 'Nguyễn Minh Quân'
                     mssv = '23207016';
                     email = '23207016@student.hcmus.edu.vn';
-                    tasks = sprintf('- kqwd\n- hsac');
-                    imageFile = 'quan.jpg';
+                    tasks = sprintf('- Đạo hàm\n- Tích phân');
+                    imageFile = 'quan.png';
         
                 case 'Nguyễn Hoàng Khang'
                     mssv = '23207006';
                     email = '23207006@student.hcmus.edu.vn';
-                    tasks = sprintf('- mns\n- qusz');
+                    tasks = sprintf('- Giới thiệu\n- Tìm nghiệm\n- Báo cáo');
                     imageFile = 'khang.jpg'; 
             end
         
