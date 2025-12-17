@@ -834,11 +834,11 @@ classdef DoanTHPPT_final < matlab.apps.AppBase
 
             % Create DanhschthnhvinListBox
             app.DanhschthnhvinListBox = uilistbox(app.GiithiunhmTab);
-            app.DanhschthnhvinListBox.Items = {'Nguyễn Hồng Minh', 'Nguyễn Minh Quân', 'Nguyễn Hoàng Khang'};
+            app.DanhschthnhvinListBox.Items = {'', 'Nguyễn Hồng Minh', 'Nguyễn Minh Quân', 'Nguyễn Hoàng Khang'};
             app.DanhschthnhvinListBox.ValueChangedFcn = createCallbackFcn(app, @DanhschthnhvinListBoxValueChanged, true);
             app.DanhschthnhvinListBox.FontSize = 15;
-            app.DanhschthnhvinListBox.Position = [25 246 195 84];
-            app.DanhschthnhvinListBox.Value = 'Nguyễn Hồng Minh';
+            app.DanhschthnhvinListBox.Position = [25 241 195 89];
+            app.DanhschthnhvinListBox.Value = {};
 
             % Create ChititthnhvinPanel
             app.ChititthnhvinPanel = uipanel(app.GiithiunhmTab);
@@ -849,6 +849,7 @@ classdef DoanTHPPT_final < matlab.apps.AppBase
             % Create Image
             app.Image = uiimage(app.ChititthnhvinPanel);
             app.Image.Position = [334 38 130 135];
+            app.Image.ImageSource = fullfile(pathToMLAPP, 'hi.jpg');
 
             % Create HvtnEditFieldLabel
             app.HvtnEditFieldLabel = uilabel(app.ChititthnhvinPanel);
@@ -1040,28 +1041,28 @@ classdef DoanTHPPT_final < matlab.apps.AppBase
             xlabel(app.UIAxes_2, 'X')
             ylabel(app.UIAxes_2, 'Y')
             zlabel(app.UIAxes_2, 'Z')
-            app.UIAxes_2.Position = [374 234 405 285];
+            app.UIAxes_2.Position = [374 246 405 273];
 
             % Create NhapdulieuxEditField
             app.NhapdulieuxEditField = uieditfield(app.NisuyTab, 'text');
-            app.NhapdulieuxEditField.HorizontalAlignment = 'center';
-            app.NhapdulieuxEditField.Position = [144 449 211 45];
+            app.NhapdulieuxEditField.Position = [100 449 255 45];
+            app.NhapdulieuxEditField.Value = '1 2 4';
 
             % Create NhapdulieuyEditField
             app.NhapdulieuyEditField = uieditfield(app.NisuyTab, 'text');
-            app.NhapdulieuyEditField.HorizontalAlignment = 'center';
-            app.NhapdulieuyEditField.Position = [144 386 211 45];
+            app.NhapdulieuyEditField.Position = [100 386 255 45];
+            app.NhapdulieuyEditField.Value = '2 3 1';
 
             % Create NhpdliuxEditFieldLabel
             app.NhpdliuxEditFieldLabel = uilabel(app.NisuyTab);
             app.NhpdliuxEditFieldLabel.HorizontalAlignment = 'right';
-            app.NhpdliuxEditFieldLabel.Position = [43 461 89 22];
+            app.NhpdliuxEditFieldLabel.Position = [1 462 89 22];
             app.NhpdliuxEditFieldLabel.Text = 'Nhập dữ liệu x:';
 
             % Create NhpdliuyEditFieldLabel
             app.NhpdliuyEditFieldLabel = uilabel(app.NisuyTab);
             app.NhpdliuyEditFieldLabel.HorizontalAlignment = 'right';
-            app.NhpdliuyEditFieldLabel.Position = [43 397 89 22];
+            app.NhpdliuyEditFieldLabel.Position = [1 398 89 22];
             app.NhpdliuyEditFieldLabel.Text = 'Nhập dữ liệu y:';
 
             % Create TNHButton
@@ -1073,37 +1074,37 @@ classdef DoanTHPPT_final < matlab.apps.AppBase
             % Create ChnphngphpnisuyDropDownLabel
             app.ChnphngphpnisuyDropDownLabel = uilabel(app.NisuyTab);
             app.ChnphngphpnisuyDropDownLabel.HorizontalAlignment = 'right';
-            app.ChnphngphpnisuyDropDownLabel.Position = [43 341 154 22];
+            app.ChnphngphpnisuyDropDownLabel.Position = [2 341 154 22];
             app.ChnphngphpnisuyDropDownLabel.Text = 'Chọn phương pháp nội suy:';
 
             % Create ChonphuongphapnoisuyDropDown
             app.ChonphuongphapnoisuyDropDown = uidropdown(app.NisuyTab);
             app.ChonphuongphapnoisuyDropDown.Items = {'Nội suy Newton', 'Nội suy Lagrange'};
             app.ChonphuongphapnoisuyDropDown.ValueChangedFcn = createCallbackFcn(app, @ChonphuongphapnoisuyDropDownValueChanged, true);
-            app.ChonphuongphapnoisuyDropDown.Position = [43 276 312 52];
+            app.ChonphuongphapnoisuyDropDown.Position = [2 276 353 52];
             app.ChonphuongphapnoisuyDropDown.Value = 'Nội suy Newton';
 
             % Create KtquathcnisuyTextAreaLabel
             app.KtquathcnisuyTextAreaLabel = uilabel(app.NisuyTab);
             app.KtquathcnisuyTextAreaLabel.HorizontalAlignment = 'right';
-            app.KtquathcnisuyTextAreaLabel.Position = [28 154 132 22];
+            app.KtquathcnisuyTextAreaLabel.Position = [2 154 132 22];
             app.KtquathcnisuyTextAreaLabel.Text = 'Kết quả đa thức nội suy';
 
             % Create KetquadathucnoisuyTextArea
             app.KetquadathucnoisuyTextArea = uitextarea(app.NisuyTab);
             app.KetquadathucnoisuyTextArea.HorizontalAlignment = 'center';
-            app.KetquadathucnoisuyTextArea.Position = [165 122 611 86];
+            app.KetquadathucnoisuyTextArea.Position = [139 122 637 86];
 
             % Create NhpgitrnisuyEditFieldLabel
             app.NhpgitrnisuyEditFieldLabel = uilabel(app.NisuyTab);
             app.NhpgitrnisuyEditFieldLabel.HorizontalAlignment = 'right';
-            app.NhpgitrnisuyEditFieldLabel.Position = [25 78 108 22];
+            app.NhpgitrnisuyEditFieldLabel.Position = [2 78 108 22];
             app.NhpgitrnisuyEditFieldLabel.Text = 'Nhập giá trị nội suy';
 
             % Create NhapgiatrinoisuyEditField
             app.NhapgiatrinoisuyEditField = uieditfield(app.NisuyTab, 'text');
             app.NhapgiatrinoisuyEditField.HorizontalAlignment = 'right';
-            app.NhapgiatrinoisuyEditField.Position = [165 59 247 59];
+            app.NhapgiatrinoisuyEditField.Position = [139 59 273 59];
 
             % Create KtqunisuyTextAreaLabel
             app.KtqunisuyTextAreaLabel = uilabel(app.NisuyTab);
@@ -1130,24 +1131,24 @@ classdef DoanTHPPT_final < matlab.apps.AppBase
 
             % Create NhapdulieuxEditField_2
             app.NhapdulieuxEditField_2 = uieditfield(app.HiQuyTab, 'text');
-            app.NhapdulieuxEditField_2.HorizontalAlignment = 'center';
-            app.NhapdulieuxEditField_2.Position = [139 449 211 45];
+            app.NhapdulieuxEditField_2.Position = [100 449 250 45];
+            app.NhapdulieuxEditField_2.Value = '1 2 4';
 
             % Create NhapdulieuyEditField_2
             app.NhapdulieuyEditField_2 = uieditfield(app.HiQuyTab, 'text');
-            app.NhapdulieuyEditField_2.HorizontalAlignment = 'center';
-            app.NhapdulieuyEditField_2.Position = [139 386 211 45];
+            app.NhapdulieuyEditField_2.Position = [100 386 250 45];
+            app.NhapdulieuyEditField_2.Value = '2 3 1';
 
             % Create NhpdliuxEditFieldLabel_2
             app.NhpdliuxEditFieldLabel_2 = uilabel(app.HiQuyTab);
             app.NhpdliuxEditFieldLabel_2.HorizontalAlignment = 'right';
-            app.NhpdliuxEditFieldLabel_2.Position = [38 461 89 22];
+            app.NhpdliuxEditFieldLabel_2.Position = [1 460 89 22];
             app.NhpdliuxEditFieldLabel_2.Text = 'Nhập dữ liệu x:';
 
             % Create NhpdliuyEditFieldLabel_2
             app.NhpdliuyEditFieldLabel_2 = uilabel(app.HiQuyTab);
             app.NhpdliuyEditFieldLabel_2.HorizontalAlignment = 'right';
-            app.NhpdliuyEditFieldLabel_2.Position = [38 397 89 22];
+            app.NhpdliuyEditFieldLabel_2.Position = [1 396 89 22];
             app.NhpdliuyEditFieldLabel_2.Text = 'Nhập dữ liệu y:';
 
             % Create TNHButton_2
@@ -1159,36 +1160,36 @@ classdef DoanTHPPT_final < matlab.apps.AppBase
             % Create ChnphngphphiquyLabel
             app.ChnphngphphiquyLabel = uilabel(app.HiQuyTab);
             app.ChnphngphphiquyLabel.HorizontalAlignment = 'right';
-            app.ChnphngphphiquyLabel.Position = [37 341 155 22];
+            app.ChnphngphphiquyLabel.Position = [1 341 155 22];
             app.ChnphngphphiquyLabel.Text = 'Chọn phương pháp hồi quy:';
 
             % Create ChonphuongphapnoisuyDropDown_2
             app.ChonphuongphapnoisuyDropDown_2 = uidropdown(app.HiQuyTab);
             app.ChonphuongphapnoisuyDropDown_2.Items = {'Tuyến tính', 'Hàm mũ', 'Logarit'};
-            app.ChonphuongphapnoisuyDropDown_2.Position = [38 276 317 52];
+            app.ChonphuongphapnoisuyDropDown_2.Position = [2 276 353 52];
             app.ChonphuongphapnoisuyDropDown_2.Value = 'Tuyến tính';
 
             % Create KtquphngtrnhhiquyLabel
             app.KtquphngtrnhhiquyLabel = uilabel(app.HiQuyTab);
             app.KtquphngtrnhhiquyLabel.HorizontalAlignment = 'right';
-            app.KtquphngtrnhhiquyLabel.Position = [8 159 162 22];
+            app.KtquphngtrnhhiquyLabel.Position = [2 159 162 22];
             app.KtquphngtrnhhiquyLabel.Text = 'Kết quả phương trình hồi quy';
 
             % Create KetquadathucnoisuyTextArea_2
             app.KetquadathucnoisuyTextArea_2 = uitextarea(app.HiQuyTab);
             app.KetquadathucnoisuyTextArea_2.HorizontalAlignment = 'center';
-            app.KetquadathucnoisuyTextArea_2.Position = [182 127 597 86];
+            app.KetquadathucnoisuyTextArea_2.Position = [176 127 603 86];
 
             % Create NhpgitrcndonLabel
             app.NhpgitrcndonLabel = uilabel(app.HiQuyTab);
             app.NhpgitrcndonLabel.HorizontalAlignment = 'right';
-            app.NhpgitrcndonLabel.Position = [8 87 137 22];
+            app.NhpgitrcndonLabel.Position = [2 87 137 22];
             app.NhpgitrcndonLabel.Text = 'Nhập giá trị cần dự đoán';
 
             % Create NhapgiatrinoisuyEditField_2
             app.NhapgiatrinoisuyEditField_2 = uieditfield(app.HiQuyTab, 'text');
             app.NhapgiatrinoisuyEditField_2.HorizontalAlignment = 'right';
-            app.NhapgiatrinoisuyEditField_2.Position = [182 61 270 64];
+            app.NhapgiatrinoisuyEditField_2.Position = [176 61 276 64];
 
             % Create KtqudonLabel
             app.KtqudonLabel = uilabel(app.HiQuyTab);
@@ -1228,6 +1229,7 @@ classdef DoanTHPPT_final < matlab.apps.AppBase
             % Create DerFuncField
             app.DerFuncField = uieditfield(app.oHmTab, 'text');
             app.DerFuncField.Position = [82 441 189 22];
+            app.DerFuncField.Value = '-0.5*x.^3 + 4*x.^2 + 10*x + 2';
 
             % Create xEditField_2Label
             app.xEditField_2Label = uilabel(app.oHmTab);
@@ -1258,6 +1260,7 @@ classdef DoanTHPPT_final < matlab.apps.AppBase
             % Create DerAField
             app.DerAField = uieditfield(app.oHmTab, 'text');
             app.DerAField.Position = [82 407 189 22];
+            app.DerAField.Value = '0';
 
             % Create CnbEditField_2Label
             app.CnbEditField_2Label = uilabel(app.oHmTab);
@@ -1268,6 +1271,7 @@ classdef DoanTHPPT_final < matlab.apps.AppBase
             % Create DerBField
             app.DerBField = uieditfield(app.oHmTab, 'text');
             app.DerBField.Position = [82 372 189 22];
+            app.DerBField.Value = '6';
 
             % Create BchEditField_2Label
             app.BchEditField_2Label = uilabel(app.oHmTab);
@@ -1278,6 +1282,7 @@ classdef DoanTHPPT_final < matlab.apps.AppBase
             % Create DerHField
             app.DerHField = uieditfield(app.oHmTab, 'text');
             app.DerHField.Position = [82 336 189 22];
+            app.DerHField.Value = '0.01';
 
             % Create ChSwitchLabel
             app.ChSwitchLabel = uilabel(app.oHmTab);
@@ -1371,6 +1376,7 @@ classdef DoanTHPPT_final < matlab.apps.AppBase
             % Create IntFuncField
             app.IntFuncField = uieditfield(app.TchPhnTab, 'text');
             app.IntFuncField.Position = [82 442 183 22];
+            app.IntFuncField.Value = '2000*x + 500*x.^3';
 
             % Create yLabel
             app.yLabel = uilabel(app.TchPhnTab);
@@ -1391,6 +1397,7 @@ classdef DoanTHPPT_final < matlab.apps.AppBase
             % Create IntAField
             app.IntAField = uieditfield(app.TchPhnTab, 'text');
             app.IntAField.Position = [82 408 183 22];
+            app.IntAField.Value = '0';
 
             % Create CnbEditFieldLabel
             app.CnbEditFieldLabel = uilabel(app.TchPhnTab);
@@ -1401,6 +1408,7 @@ classdef DoanTHPPT_final < matlab.apps.AppBase
             % Create IntBField
             app.IntBField = uieditfield(app.TchPhnTab, 'text');
             app.IntBField.Position = [82 377 183 22];
+            app.IntBField.Value = '0.4';
 
             % Create SonNLabel
             app.SonNLabel = uilabel(app.TchPhnTab);
@@ -1410,6 +1418,7 @@ classdef DoanTHPPT_final < matlab.apps.AppBase
             % Create IntNField
             app.IntNField = uispinner(app.TchPhnTab);
             app.IntNField.Position = [82 345 84 22];
+            app.IntNField.Value = 24;
 
             % Create ChSwitchLabel_2
             app.ChSwitchLabel_2 = uilabel(app.TchPhnTab);
