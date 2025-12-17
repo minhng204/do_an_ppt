@@ -23,3 +23,6 @@
 ### 14/12
 - Cập nhật file đồ án cuối cùng lên GitHub  
 - Chỉnh sửa README cho đồ án
+
+### 17/12
+- Cập nhật lại file lỗi trên Github
